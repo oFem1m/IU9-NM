@@ -1,83 +1,125 @@
+import numpy as np
+
+# из лабы 0, адаптированный под numpy
 def gaussian_elimination(A, b):
-    n = len(A)
-    for i in range(n):
-        A[i].append(b[i])
+    A = A.astype(float).copy()
+    b = b.astype(float).copy()
+    n = A.shape[0]
+
+    aug = np.hstack((A, b.reshape(-1, 1)))
 
     for i in range(n):
-        max_row = i
-        for k in range(i + 1, n):
-            if abs(A[k][i]) > abs(A[max_row][i]):
-                max_row = k
-        A[i], A[max_row] = A[max_row], A[i]
+        pivot_row = i + np.argmax(np.abs(aug[i:, i]))
+        aug[[i, pivot_row]] = aug[[pivot_row, i]]
 
         for k in range(i + 1, n):
-            factor = A[k][i] / A[i][i]
-            for j in range(i, n + 1):
-                A[k][j] -= factor * A[i][j]
+            factor = aug[k, i] / aug[i, i]
+            aug[k, i:] -= factor * aug[i, i:]
 
-    x = [0] * n
+    x = np.zeros(n)
     for i in range(n - 1, -1, -1):
-        x[i] = A[i][n] / A[i][i]
-        for k in range(i - 1, -1, -1):
-            A[k][n] -= A[k][i] * x[i]
+        x[i] = aug[i, n] / aug[i, i]
+        aug[:i, n] -= aug[:i, i] * x[i]
 
     return x
 
-def calculate_residual(A, b, x):
-    n = len(A)
-    residuals = [abs(b[i] - sum(A[i][j] * x[j] for j in range(n))) for i in range(n)]
-    print(residuals)
-    delta = max(residuals)
-    relative_delta = delta / max(abs(x_i) for x_i in x)
-    return delta, relative_delta
 
-A = [[2, 1, -0.1, 1],
-      [0.4, 0.5, 4, -8.5],
-      [0.3, -1, 1, 5.2],
-      [1, 0.2, 2.5, -1]]
-b = [2.7, 21.9, -3.9, 9.9]
+def f(x):
+    return 0.25 * x * np.exp(x ** 2 / 2)
 
-A1 = [[2, 1, -0.1, 1],
-      [0.4, 0.5, 4, -8.5],
-      [0.3, -1, 1, 5.2],
-      [1, 0.2, 2.5, -1]]
-b1 = [2.7, 21.9, -3.9, 9.9]
 
-# A1 = [[2, -1, 0, 1],
-#       [1, 3, -2, 2],
-#       [0, 1, 2, -1],
-#       [1, -2, 1, 3]]
-# b1 = [5, 3, 4, 7]
-#
-# A2 = [[4, -2, 1, 3],
-#       [-2, 4, -2, 1],
-#       [1, -2, 3, -1],
-#       [3, 1, -1, 2]]
-# b2 = [8, -3, 4, 7]
+def build_cubic_spline_coeffs(x, y):
+    n = len(x) - 1
 
-# A3 = [[4, -2, 1, 3],
-#       [8, -4, 3, 6],
-#       [-2, 4, -2, 1],
-#       [1, -2, 3, -1],
-#       [3, 1, -1, 2]]
-# b3 = [8, 16, -3, 4, 7]
+    a = np.copy(y)
+    b = np.zeros(n)
+    c = np.zeros(n + 1)
+    d = np.zeros(n)
 
-solution = gaussian_elimination(A, b)
-delta, rel_delta = calculate_residual(A1, b1, solution)
-print("Решение системы:", solution)
-print("Невязка:", delta, "Относительная невязка:", rel_delta)
+    h = np.diff(x)
 
-# solution1 = gaussian_elimination(A1, b1)
-# delta1, rel_delta1 = calculate_residual(A1, b1, solution1)
-# print("Решение системы 1:", solution1)
-# print("Невязка:", delta1, "Относительная невязка:", rel_delta1)
-#
-# solution2 = gaussian_elimination(A2, b2)
-# delta2, rel_delta2 = calculate_residual(A2, b2, solution2)
-# print("Решение системы 2:", solution2)
-# print("Невязка:", delta2, "Относительная невязка:", rel_delta2)
+    A = np.zeros((n - 1, n - 1))
+    rhs = np.zeros(n - 1)
 
-# solution3 = gaussian_elimination(A3, b3)
-# delta3, rel_delta3 = calculate_residual(A3, b3, solution3)
-# print("Решение системы 3:", solution3)
-# print("Невязка:", delta3, "Относительная невязка:", rel_delta3)
+    for i in range(1, n):
+        if i < n:
+            index = i - 1
+
+            if index > 0:
+                A[index, index - 1] = h[i - 1]
+            A[index, index] = 2.0 * (h[i - 1] + h[i] if i < n else h[i - 1] + h[i - 1])
+            if index < n - 2:
+                A[index, index + 1] = h[i]
+
+            rhs[index] = 3.0 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1])
+
+    c_internal = gaussian_elimination(A, rhs)
+
+    c[1:n] = c_internal
+
+    for i in range(n - 1):
+        b[i] = ((y[i + 1] - y[i]) / h[i] - (h[i] / 3.0) * (2.0 * c[i] + c[i + 1]))
+        d[i] = (c[i + 1] - c[i]) / (3.0 * h[i])
+
+    b[n - 1] = ((y[n] - y[n - 1]) / h[n - 1] - (2.0 * c[n - 1] * h[n - 1] / 3.0))
+    d[n - 1] = - (c[n] / (3.0 * h[n - 1]))
+
+    return a, b, c, d
+
+
+def spline_value(x_val, x_nodes, a, b, c, d):
+    n = len(x_nodes) - 1
+    if x_val <= x_nodes[0]:
+        i = 0
+    elif x_val >= x_nodes[n]:
+        i = n - 1
+    else:
+        i = np.searchsorted(x_nodes, x_val) - 1
+
+    dx = x_val - x_nodes[i]
+    return a[i] + b[i] * dx + c[i] * (dx ** 2) + d[i] * (dx ** 3)
+
+
+def main():
+    a_val = 0.0
+    b_val = 1.0
+    n = 32
+    x_nodes = np.linspace(a_val, b_val, n + 1)
+    y_nodes = f(x_nodes)
+    h = (b_val - a_val) / n
+
+    print("Node table (x_i, y_i):")
+    for i in range(n + 1):
+        print(f"i = {i:2d}, x = {x_nodes[i]:.5f}, y = {y_nodes[i]:.5f}")
+    print()
+
+    A, B, C, D = build_cubic_spline_coeffs(x_nodes, y_nodes)
+
+    print("Spline coefficients by segments [x_i, x_{i+1}]:")
+    print(" i      a[i]          b[i]          c[i]          d[i]")
+    for i in range(n):
+        print(f"{i:2d}  {A[i]:12.6f}  {B[i]:12.6f}  {C[i]:12.6f}  {D[i]:12.6f}")
+    print(f"c[n] = {C[n]:.6f}\n")
+    print("Comparison of f(x*) and S(x*) at the midpoints of the segments:")
+    print(" i     x*          f(x*)       S(x*)")
+    for i in range(1, n + 1):
+        x_star = a_val + (i - 0.5) * h
+        f_star = f(x_star)
+        s_star = spline_value(x_star, x_nodes, A, B, C, D)
+        print(f"{i:2d}  {x_star:10.5f}  {f_star:10.5f}  {s_star:10.5f}")
+    print()
+
+    x_user_str = input("Enter an x: ")
+    try:
+        x_user = float(x_user_str)
+        f_user = f(x_user)
+        s_user = spline_value(x_user, x_nodes, A, B, C, D)
+        print(f"\nIn x = {x_user:.5f}:")
+        print(f"f(x) = {f_user:.6f}")
+        print(f"S(x) = {s_user:.6f}")
+    except ValueError:
+        print("Error.")
+
+
+if __name__ == "__main__":
+    main()
