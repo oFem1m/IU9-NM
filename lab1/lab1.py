@@ -42,16 +42,15 @@ def build_cubic_spline_coeffs(x, y):
     rhs = np.zeros(n - 1)
 
     for i in range(1, n):
-        if i < n:
-            index = i - 1
+        index = i - 1
 
-            if index > 0:
-                A[index, index - 1] = h[i - 1]
-            A[index, index] = 2.0 * (h[i - 1] + h[i] if i < n else h[i - 1] + h[i - 1])
-            if index < n - 2:
-                A[index, index + 1] = h[i]
+        if index > 0:
+            A[index, index - 1] = h[i - 1]
+        A[index, index] = 2.0 * (h[i - 1] + h[i] if i < n else h[i - 1] + h[i - 1])
+        if index < n - 2:
+            A[index, index + 1] = h[i]
 
-            rhs[index] = 3.0 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1])
+        rhs[index] = 3.0 * ((y[i + 1] - y[i]) / h[i] - (y[i] - y[i - 1]) / h[i - 1])
 
     c_internal = gaussian_elimination(A, rhs)
 
@@ -82,7 +81,7 @@ def spline_value(x_val, x_nodes, a, b, c, d):
 
 def main():
     a_val = 0.0
-    b_val = 1.0
+    b_val = 2.0
     n = 32
     x_nodes = np.linspace(a_val, b_val, n + 1)
     y_nodes = f(x_nodes)
@@ -114,7 +113,7 @@ def main():
         x_user = float(x_user_str)
         f_user = f(x_user)
         s_user = spline_value(x_user, x_nodes, A, B, C, D)
-        print(f"\nIn x = {x_user:.5f}:")
+        print(f"\nIn point x = {x_user:.5f}:")
         print(f"f(x) = {f_user:.6f}")
         print(f"S(x) = {s_user:.6f}")
     except ValueError:
