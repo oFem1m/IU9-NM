@@ -50,7 +50,7 @@ def runge_integration(method, f, a, b, eps, p, start_n=2):
 
         if abs(R) < eps:
             I_extrap = I_2n + R
-            return I_2n, R, I_extrap, 2 * n
+            return I_2n, R, I_extrap, n
 
         n *= 2
         I_n = I_2n
