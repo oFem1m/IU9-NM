@@ -32,22 +32,22 @@ def runge_kutt(f, x0, Y0, x_end, h):
     x = x0
     Y = Y0[:]
 
-    # initial point
     exact_y, exact_y_prime = exact_solution(x)
     results.append((x, Y[0], Y[1], exact_y, exact_y_prime, 0.0))
 
     while x < x_end:
-        if x + h > x_end:
-            h = x_end - x
+        if x + 2*h > x_end:
+            h = (x_end - x) / 2
 
-        Y_full = rk_step(f, x, Y, h)
-        Y_half = rk_step(f, x, Y, h / 2)
-        Y_half2 = rk_step(f, x + h / 2, Y_half, h / 2)
+        Y_h1 = rk_step(f, x, Y, h)
+        Y_h2 = rk_step(f, x + h, Y_h1, h)
 
-        err = abs(Y_half2[0] - Y_full[0]) / 15
+        Y_2h = rk_step(f, x, Y, 2*h)
 
-        Y = Y_half2
-        x += h
+        err = abs(Y_h2[0] - Y_2h[0]) / 15
+
+        x += 2*h
+        Y = Y_h2
 
         exact_y, exact_y_prime = exact_solution(x)
         results.append((x, Y[0], Y[1], exact_y, exact_y_prime, err))
@@ -59,15 +59,15 @@ def main():
     x0 = 0
     x_end = 1
     Y0 = [3, 9]
-    h = 0.1
+    h = 0.01
 
     results = runge_kutt(f, x0, Y0, x_end, h)
 
-    print(
-        "{:>8} {:>14} {:>14} {:>14} {:>14} {:>14}".format("x", "Approx y", "Approx y'", "Exact y", "Exact y'", "Error"))
-    for x_val, approx_y, approx_yprime, exact_y, exact_yprime, err in results:
-        print("{:8.4f} {:14.6f} {:14.6f} {:14.6f} {:14.6f} {:14.6f}".format(x_val, approx_y, approx_yprime, exact_y,
-                                                                            exact_yprime, err))
+    print("{:>8} {:>14} {:>14} {:>14} {:>14} {:>14}".format(
+        "x", "Approx y", "Exact y", "Approx y'", "Exact y'", "Error"))
+    for x_val, approx_y, exact_y, approx_yprime, exact_yprime, err in results:
+        print("{:8.4f} {:14.6f} {:14.6f} {:14.6f} {:14.6f} {:14.6f}".format(
+            x_val, approx_y, exact_y, approx_yprime, exact_yprime, err))
 
 
 if __name__ == "__main__":
