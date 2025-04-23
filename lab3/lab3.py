@@ -59,13 +59,13 @@ def main():
     x0 = 0
     x_end = 1
     Y0 = [3, 9]
-    h = 0.01
+    h = 0.1
 
     results = runge_kutt(f, x0, Y0, x_end, h)
 
     print("{:>8} {:>14} {:>14} {:>14} {:>14} {:>14}".format(
         "x", "Approx y", "Exact y", "Approx y'", "Exact y'", "Error"))
-    for x_val, approx_y, exact_y, approx_yprime, exact_yprime, err in results:
+    for x_val, approx_y,approx_yprime,  exact_y, exact_yprime, err in results:
         print("{:8.4f} {:14.6f} {:14.6f} {:14.6f} {:14.6f} {:14.6f}".format(
             x_val, approx_y, exact_y, approx_yprime, exact_yprime, err))
 
