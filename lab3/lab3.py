@@ -37,7 +37,7 @@ def runge_kutt(f, x0, Y0, x_end, h):
 
     while x < x_end:
         if x + 2*h > x_end:
-            h = (x_end - x) / 2
+            return results
 
         Y_h_prev = rk_step(f, x, Y, h)
         Y_h = rk_step(f, x + h, Y_h_prev, h)
@@ -59,7 +59,7 @@ def main():
     x0 = 0
     x_end = 1
     Y0 = [3, 9]
-    h = 0.1
+    h = 0.05
 
     results = runge_kutt(f, x0, Y0, x_end, h)
 
