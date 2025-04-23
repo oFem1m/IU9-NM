@@ -39,15 +39,15 @@ def runge_kutt(f, x0, Y0, x_end, h):
         if x + 2*h > x_end:
             h = (x_end - x) / 2
 
-        Y_h1 = rk_step(f, x, Y, h)
-        Y_h2 = rk_step(f, x + h, Y_h1, h)
+        Y_h_prev = rk_step(f, x, Y, h)
+        Y_h = rk_step(f, x + h, Y_h_prev, h)
 
         Y_2h = rk_step(f, x, Y, 2*h)
 
-        err = abs(Y_h2[0] - Y_2h[0]) / 15
+        err = abs(Y_h[0] - Y_2h[0]) / 15
 
         x += 2*h
-        Y = Y_h2
+        Y = Y_h
 
         exact_y, exact_y_prime = exact_solution(x)
         results.append((x, Y[0], Y[1], exact_y, exact_y_prime, err))
