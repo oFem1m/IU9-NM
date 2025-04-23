@@ -34,18 +34,23 @@ def runge_kutt(f, x0, Y0, x_end, h):
 
     # initial point
     exact_y, exact_y_prime = exact_solution(x)
-    results.append((x, Y[0], Y[1], exact_y, exact_y_prime, abs(Y[0] - exact_y)))
+    results.append((x, Y[0], Y[1], exact_y, exact_y_prime, 0.0))
 
     while x < x_end:
         if x + h > x_end:
             h = x_end - x
 
-        Y = rk_step(f, x, Y, h)
+        Y_full = rk_step(f, x, Y, h)
+        Y_half = rk_step(f, x, Y, h / 2)
+        Y_half2 = rk_step(f, x + h / 2, Y_half, h / 2)
+
+        err = abs(Y_half2[0] - Y_full[0]) / 15
+
+        Y = Y_half2
         x += h
 
         exact_y, exact_y_prime = exact_solution(x)
-        error_value = abs(Y[0] - exact_y)
-        results.append((x, Y[0], Y[1], exact_y, exact_y_prime, error_value))
+        results.append((x, Y[0], Y[1], exact_y, exact_y_prime, err))
 
     return results
 
@@ -54,7 +59,7 @@ def main():
     x0 = 0
     x_end = 1
     Y0 = [3, 9]
-    h = 0.01
+    h = 0.1
 
     results = runge_kutt(f, x0, Y0, x_end, h)
 
