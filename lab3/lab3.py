@@ -23,41 +23,30 @@ def rk_step(f, x, Y, h):
 
 def exact_solution(x):
     y = (1 / 8) * math.exp(x) + (11 / 4) * math.exp(3 * x) + (1 / 8) * math.exp(5 * x)
-    yprime = (1 / 8) * math.exp(x) + (33 / 4) * math.exp(3 * x) + (5 / 8) * math.exp(5 * x)
-    return y, yprime
+    y_prime = ((1 / 8) * math.exp(x) + (33 / 4) * math.exp(3 * x) + (5 / 8) * math.exp(5 * x))
+    return y, y_prime
 
 
-def adaptive_rk(f, x0, Y0, x_end, tol):
+def runge_kutt(f, x0, Y0, x_end, h):
     results = []
     x = x0
     Y = Y0[:]
-    h = 0.01
 
-    exact_y, exact_yprime = exact_solution(x)
-    results.append((x, Y[0], Y[1], exact_y, exact_yprime, abs(Y[0] - exact_y)))
+    # initial point
+    exact_y, exact_y_prime = exact_solution(x)
+    results.append((x, Y[0], Y[1], exact_y, exact_y_prime, abs(Y[0] - exact_y)))
 
     while x < x_end:
         if x + h > x_end:
             h = x_end - x
 
-        Y_full = rk_step(f, x, Y, h)
-        Y_half = rk_step(f, x, Y, h / 2)
-        Y_half2 = rk_step(f, x + h / 2, Y_half, h / 2)
+        Y = rk_step(f, x, Y, h)
+        x += h
 
-        err = max(abs(Y_half2[i] - Y_full[i]) for i in range(len(Y))) / 15
+        exact_y, exact_y_prime = exact_solution(x)
+        error_value = abs(Y[0] - exact_y)
+        results.append((x, Y[0], Y[1], exact_y, exact_y_prime, error_value))
 
-        if err < tol:
-            x = x + h
-            Y = Y_half2[:]
-            exact_y, exact_yprime = exact_solution(x)
-            error_value = abs(Y[0] - exact_y)
-            results.append((x, Y[0], Y[1], exact_y, exact_yprime, error_value))
-
-            s = 0.9 * (tol / err) ** 0.2 if err != 0 else 2.0
-            h = h * min(s, 2.0)
-        else:
-            s = 0.9 * (tol / err) ** 0.2
-            h = h * s
     return results
 
 
@@ -65,16 +54,15 @@ def main():
     x0 = 0
     x_end = 1
     Y0 = [3, 9]
-    tol = 0.001
+    h = 0.01
 
-    results = adaptive_rk(f, x0, Y0, x_end, tol)
+    results = runge_kutt(f, x0, Y0, x_end, h)
 
-    print("{:>8} {:>14} {:>14} {:>14} {:>14} {:>14}".format(
-        "x", "Approx y", "Approx y'", "Exact y", "Exact y'", "Error"))
-    for res in results:
-        x_val, approx_y, approx_yprime, exact_y, exact_yprime, err = res
-        print("{:8.4f} {:14.6f} {:14.6f} {:14.6f} {:14.6f} {:14.6f}"
-              .format(x_val, approx_y, approx_yprime, exact_y, exact_yprime, err))
+    print(
+        "{:>8} {:>14} {:>14} {:>14} {:>14} {:>14}".format("x", "Approx y", "Approx y'", "Exact y", "Exact y'", "Error"))
+    for x_val, approx_y, approx_yprime, exact_y, exact_yprime, err in results:
+        print("{:8.4f} {:14.6f} {:14.6f} {:14.6f} {:14.6f} {:14.6f}".format(x_val, approx_y, approx_yprime, exact_y,
+                                                                            exact_yprime, err))
 
 
 if __name__ == "__main__":
