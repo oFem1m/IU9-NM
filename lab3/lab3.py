@@ -44,7 +44,7 @@ def runge_kutt(f, x0, Y0, x_end, h):
 
         Y_2h = rk_step(f, x, Y, 2 * h)
 
-        err = max(abs(Y_h[0] - Y_2h[0]), abs(Y_h[1] - Y_2h[1])) / 15.0
+        err = abs(Y_h[0] - Y_2h[0]) / 15.0
 
         x += 2 * h
         Y = Y_h
@@ -73,7 +73,7 @@ def runge_kutt_adaptive(f, x0, Y0, x_end, h0, eps):
 
         Y_2h = rk_step(f, x, Y, 2 * h)
 
-        err = max(abs(Y_h[0] - Y_2h[0]), abs(Y_h[1] - Y_2h[1])) / 15.0
+        err = abs(Y_h[0] - Y_2h[0]) / 15.0
 
         h_opt = h * (eps / err) ** (1.0 / 5.0) if err != 0 else 2 * h
         h_new = 0.9 * h_opt
