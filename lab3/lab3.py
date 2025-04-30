@@ -30,7 +30,6 @@ def exact_solution(x):
 
 
 def runge_kutta_fixed(f, x0, Y0, x_end, h):
-    p = 4
     results = []
     x = x0
     Y = Y0[:]
@@ -43,8 +42,10 @@ def runge_kutta_fixed(f, x0, Y0, x_end, h):
         Y_half = rk4_step(f, x, Y, h_step / 2)
         Y_h2 = rk4_step(f, x + h_step / 2, Y_half, h_step / 2)
 
-        err_local = abs(Y_h2[0] - Y_h[0]) / (2 ** p - 1)
-        Y_corr = [Y_h[i] + (Y_h2[i] - Y_h[i]) / (2 ** p - 1) for i in range(2)]
+        diff0 = abs(Y_h2[0] - Y_h[0])
+        diff1 = abs(Y_h2[1] - Y_h[1])
+        err_local = max(diff0, diff1) / 15.0
+        Y_corr = [Y_h[i] + (Y_h2[i] - Y_h[i]) / 15.0 for i in range(2)]
 
         x += h_step
         Y = Y_corr
