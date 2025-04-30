@@ -43,8 +43,8 @@ def runge_kutta_fixed(f, x0, Y0, x_end, h):
         Y_half = rk4_step(f, x, Y, h_step / 2)
         Y_h2 = rk4_step(f, x + h_step / 2, Y_half, h_step / 2)
 
-        err_local = abs(Y_h[0] - Y_h2[0]) / (2 ** p - 1)
-        Y_corr = [Y_h[i] + (Y_h[i] - Y_h2[i]) / (2 ** p - 1) for i in range(2)]
+        err_local = abs(Y_h2[0] - Y_h[0]) / (2 ** p - 1)
+        Y_corr = [Y_h[i] + (Y_h2[i] - Y_h[i]) / (2 ** p - 1) for i in range(2)]
 
         x += h_step
         Y = Y_corr
@@ -73,11 +73,11 @@ def runge_kutta_adaptive(f, x0, Y0, x_end, h0, eps):
         Y_half = rk4_step(f, x, Y, h / 2)
         Y_h2 = rk4_step(f, x + h / 2, Y_half, h / 2)
 
-        diff0 = abs(Y_h[0] - Y_h2[0])
-        diff1 = abs(Y_h[1] - Y_h2[1])
+        diff0 = abs(Y_h2[0] - Y_h[0])
+        diff1 = abs(Y_h2[1] - Y_h[1])
         err_local = max(diff0, diff1) / 15.0
 
-        Y_corr = [Y_h[i] + (Y_h[i] - Y_h2[i]) / 15.0 for i in range(2)]
+        Y_corr = [Y_h[i] + (Y_h2[i] - Y_h[i]) / 15.0 for i in range(2)]
 
         if err_local == 0:
             h_opt = 2 * h
@@ -110,7 +110,7 @@ def print_results(results, title):
 def main():
     x0, x_end = 0.0, 1.0
     Y0 = [3.0, 9.0]
-    h = 0.03125
+    h = 0.125
     res_fixed = runge_kutta_fixed(f, x0, Y0, x_end, h)
     print_results(res_fixed, "Runge-Kutt fixed")
     eps = 1e-3
