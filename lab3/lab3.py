@@ -55,6 +55,8 @@ def runge_kutta_fixed(f, x0, Y0, x_end, h):
 
 
 def runge_kutta_adaptive(f, x0, Y0, x_end, h0, eps):
+    max_factor = 2.0
+    min_factor = 0.5
     results = []
     x = x0
     Y = Y0[:]
@@ -71,18 +73,24 @@ def runge_kutta_adaptive(f, x0, Y0, x_end, h0, eps):
         Y_half = rk4_step(f, x, Y, h / 2)
         Y_h2 = rk4_step(f, x + h / 2, Y_half, h / 2)
 
-        err_local = abs(Y_h[0] - Y_h2[0]) / 15.0
+        diff0 = abs(Y_h[0] - Y_h2[0])
+        diff1 = abs(Y_h[1] - Y_h2[1])
+        err_local = max(diff0, diff1) / 15.0
 
         Y_corr = [Y_h[i] + (Y_h[i] - Y_h2[i]) / 15.0 for i in range(2)]
-        err_global = abs(Y_corr[0] - ey)
 
-        h_opt = h * (eps / err_local) ** (1.0 / 5.0)
+        if err_local == 0:
+            h_opt = 2 * h
+        else:
+            h_opt = h * (eps / err_local) ** (1.0 / 5.0)
         h_new = 0.9 * h_opt
+        h_new = max(min_factor * h, min(max_factor * h, h_new))
 
         if err_local <= eps:
             x += h
             Y = Y_corr
             ey, eyp = exact_solution(x)
+            err_global = abs(Y[0] - ey)
             results.append((x, Y[0], ey, Y[1], eyp, err_local, err_global, h))
             h = h_new
         else:
