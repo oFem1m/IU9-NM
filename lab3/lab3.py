@@ -28,32 +28,37 @@ def exact_solution(x):
     y_p = (1 / 8) * math.exp(x) + (33 / 4) * math.exp(3 * x) + (5 / 8) * math.exp(5 * x)
     return y, y_p
 
-
-def runge_kutta_fixed(f, x0, Y0, x_end, h):
-    results = []
-    x = x0
-    Y = Y0[:]
-    ey, eyp = exact_solution(x)
-    results.append((x, Y[0], ey, Y[1], eyp, 0.0, 0.0, h))
-    while x < x_end:
-        h_step = min(h, x_end - x)
-
-        Y_h = rk4_step(f, x, Y, h_step)
-        Y_half = rk4_step(f, x, Y, h_step / 2)
-        Y_h2 = rk4_step(f, x + h_step / 2, Y_half, h_step / 2)
-
-        diff0 = abs(Y_h2[0] - Y_h[0])
-        diff1 = abs(Y_h2[1] - Y_h[1])
-        err_local = max(diff0, diff1) / 15.0
-        Y_corr = [Y_h[i] + (Y_h2[i] - Y_h[i]) / 15.0 for i in range(2)]
-
-        x += h_step
-        Y = Y_corr
+def runge_kutta_fixed(f, x0, Y0, x_end, h_init, eps):
+    h = h_init
+    while True:
+        results = []
+        x = x0
+        Y = Y0[:]
         ey, eyp = exact_solution(x)
-        err_global = abs(Y[0] - ey)
-        results.append((x, Y[0], ey, Y[1], eyp, err_local, err_global, h_step))
-    return results
+        results.append((x, Y[0], ey, Y[1], eyp, 0.0, 0.0, h))
+        ok = True
+        while x < x_end:
+            h_step = min(h, x_end - x)
 
+            Y_h = rk4_step(f, x, Y, h_step)
+            Y_half = rk4_step(f, x, Y, h_step / 2)
+            Y_h2 = rk4_step(f, x + h_step / 2, Y_half, h_step / 2)
+
+            diff0 = abs(Y_h2[0] - Y_h[0])
+            diff1 = abs(Y_h2[1] - Y_h[1])
+            err_local = max(diff0, diff1) / 15.0
+            if err_local > eps:
+                ok = False
+                break
+            Y = [Y_h[i] + (Y_h2[i] - Y_h[i]) / 15.0 for i in range(2)]
+            x += h_step
+
+            ey, eyp = exact_solution(x)
+            err_global = abs(Y[0] - ey)
+            results.append((x, Y[0], ey, Y[1], eyp, err_local, err_global, h_step))
+        if ok:
+            return results, h
+        h /= 2.0
 
 def runge_kutta_adaptive(f, x0, Y0, x_end, h0, eps):
     max_factor = 2.0
@@ -111,11 +116,12 @@ def print_results(results, title):
 def main():
     x0, x_end = 0.0, 1.0
     Y0 = [3.0, 9.0]
-    h = 0.125
-    res_fixed = runge_kutta_fixed(f, x0, Y0, x_end, h)
-    print_results(res_fixed, "Runge-Kutt fixed")
+    h_init = 0.5
     eps = 1e-3
-    res_adapt = runge_kutta_adaptive(f, x0, Y0, x_end, h, eps)
+    res_fixed, h_final = runge_kutta_fixed(f, x0, Y0, x_end, h_init, eps)
+    print_results(res_fixed, "Runge-Kutt fixed")
+
+    res_adapt = runge_kutta_adaptive(f, x0, Y0, x_end, h_final, eps)
     print_results(res_adapt, f"Runge-Kutt adaptive")
 
 
