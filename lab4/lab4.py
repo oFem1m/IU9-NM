@@ -45,7 +45,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-x_range = np.linspace(-10, 10, 400)
+x_range = np.linspace(-10, 10, 10)
 f_values = f(x_range)
 
 intervals = []
@@ -58,7 +58,7 @@ for interval in intervals:
     print(f"[{interval[0]:.3f}, {interval[1]:.3f}]")
 
 
-def bisection_method(f, a, b, tol=1e-3, max_iter=1000):
+def bisection_method(f, a, b, tol=1e-6, max_iter=1000):
     iterations = 0
     if f(a) * f(b) >= 0:
         raise ValueError("Функция не меняет знак на данном отрезке.")
@@ -84,7 +84,7 @@ for a, b in intervals:
         print(f"Ошибка в методе деления отрезков пополам: {e}")
 
 
-def newton_method(f, df, x0, tol=1e-3, max_iter=1000):
+def newton_method(f, df, x0, tol=1e-6, max_iter=1000):
     iterations = 0
     x = x0
     while abs(f(x)) > tol and iterations < max_iter:
