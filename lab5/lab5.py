@@ -44,6 +44,10 @@ if __name__ == "__main__":
     x0 = (0.0, 1.0)
     eps = 1e-3
 
+    print("Start point:")
+    print(f"  x_0 = ({x0[0]}, {x0[1]})")
+    print()
+
     x_num, f_num, iters = steepest_descent(x0, eps)
     print(f"Numeric solution:")
     print(f"  x = ({x_num[0]:.10f}, {x_num[1]:.10f})")
