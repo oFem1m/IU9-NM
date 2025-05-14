@@ -67,5 +67,5 @@ if __name__ == "__main__":
     dx2 = x_num[1] - x2a
     df = f_num - f_anal
     print(f"Differences:")
-    print(f"  Δx = ({dx1:.2e}, {dx2:.2e})")
-    print(f"  Δf = {df:.2e}")
+    print(f"  delta_x = ({dx1:.2e}, {dx2:.2e})")
+    print(f"  delta_f = {df:.2e}")
