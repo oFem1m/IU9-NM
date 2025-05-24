@@ -8,10 +8,10 @@ n = len(x)
 
 Sx = np.sum(x)
 Sy = np.sum(y)
-Sxx = np.sum(x**2)
+Sxx = np.sum(x ** 2)
 Sxy = np.sum(x * y)
 
-den = n * Sxx - Sx**2
+den = n * Sxx - Sx ** 2
 
 a = (n * Sxy - Sx * Sy) / den
 b = (Sxx * Sy - Sx * Sxy) / den
@@ -21,7 +21,7 @@ print(f"Коэффициенты линейной аппроксимации: a 
 y_pred = a * x + b
 eps = y - y_pred
 
-delta = np.sqrt(np.sum(eps**2) / n)
+delta = np.sqrt(np.sum(eps ** 2) / n)
 print(f"Среднеквадратичное отклонение delta = {delta:.4f}")
 
 plt.figure(figsize=(8, 5))
